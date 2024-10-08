@@ -1,58 +1,58 @@
 import streamlit as st
 from transformers import MarianMTModel, MarianTokenizer
 
-# Load the models and tokenizers for selected languages
+# Define the models for each language
 models = {
-    "English to French": "Helsinki-NLP/opus-mt-en-fr",
-    "English to Spanish": "Helsinki-NLP/opus-mt-en-es",
-    "English to German": "Helsinki-NLP/opus-mt-en-de",
-    "English to Italian": "Helsinki-NLP/opus-mt-en-it",
-    # "English to Portuguese": "Helsinki-NLP/opus-mt-en-pt",
-    "English to Dutch": "Helsinki-NLP/opus-mt-en-nl",
-    "English to Russian": "Helsinki-NLP/opus-mt-en-ru",
-    "English to Chinese (Simplified)": "Helsinki-NLP/opus-mt-en-zh",
-    # "English to Japanese": "Helsinki-NLP/opus-mt-en-ja",
-    "English to Arabic": "Helsinki-NLP/opus-mt-en-ar",
+    "fr": {
+        "model": "Helsinki-NLP/opus-mt-en-fr",
+        "tokenizer": "Helsinki-NLP/opus-mt-en-fr"
+    },
+    "es": {
+        "model": "Helsinki-NLP/opus-mt-en-es",
+        "tokenizer": "Helsinki-NLP/opus-mt-en-es"
+    },
+    "de": {
+        "model": "Helsinki-NLP/opus-mt-en-de",
+        "tokenizer": "Helsinki-NLP/opus-mt-en-de"
+    },
+    # Add more languages here if needed
 }
 
-def load_model_and_tokenizer(model_name):
-    tokenizer = MarianTokenizer.from_pretrained(model_name)
+# Lazy load the model only when needed
+@st.cache_resource
+def load_model(language_code):
+    model_name = models[language_code]["model"]
+    tokenizer_name = models[language_code]["tokenizer"]
     model = MarianMTModel.from_pretrained(model_name)
-    return tokenizer, model
+    tokenizer = MarianTokenizer.from_pretrained(tokenizer_name)
+    return model, tokenizer
 
-def translate(text, model, tokenizer):
-    inputs = tokenizer.encode(text, return_tensors="pt", max_length=512, truncation=True)
-    translated = model.generate(inputs, max_length=512, num_beams=4, early_stopping=True)
-    translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
-    return translated_text
+# Streamlit app layout
+st.title("Multi-language Translator")
 
-# Streamlit app
-st.title('🌐 Language Translator')
-st.markdown("""
-    This app allows you to translate text from English to multiple languages.
-    Select the target language from the dropdown menu and enter the text you want to translate.
-""")
+# Create a dropdown for language selection
+language_code = st.selectbox(
+    "Select the target language:",
+    options=list(models.keys()),
+    format_func=lambda x: {"fr": "French", "es": "Spanish", "de": "German"}[x]  # Adjust to match your language codes
+)
 
-# Sidebar for additional options
-st.sidebar.header("Options")
-st.sidebar.write("Select the target language and enter the text for translation.")
+# Text input for translation
+text_to_translate = st.text_area("Enter text to translate")
 
-# Dropdown for language selection
-selected_language = st.selectbox('Choose the target language:', list(models.keys()))
+# Button to trigger translation
+if st.button("Translate"):
+    if text_to_translate:
+        # Load the selected model and tokenizer
+        model, tokenizer = load_model(language_code)
 
-# Load the selected model and tokenizer
-model_name = models[selected_language]
-tokenizer, model = load_model_and_tokenizer(model_name)
+        # Encode the input text and perform the translation
+        inputs = tokenizer(text_to_translate, return_tensors="pt", padding=True, truncation=True)
+        translated_tokens = model.generate(**inputs)
+        translated_text = tokenizer.decode(translated_tokens[0], skip_special_tokens=True)
 
-text = st.text_area('Enter text to translate:')
-if st.button('Translate'):
-    if text:
-        translation = translate(text, model, tokenizer)
-        st.success('Translation:')
-        st.markdown(f"<h2 style='color:red;'>{translation}</h2>", unsafe_allow_html=True)
+        # Display the translated text
+        st.write("**Translated Text:**")
+        st.success(translated_text)
     else:
-        st.warning("Please enter some text to translate.")
-
-# Footer
-st.markdown("---")
-st.markdown("Created with ❤️ by [Aditya Srivastava](https://adi1816.github.io/AdiInYourHeart/)")
+        st.error("Please enter some text to translate.")
