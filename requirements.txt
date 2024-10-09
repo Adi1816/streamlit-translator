@@ -18,7 +18,7 @@ grpcio==1.66.2
 h5py==3.12.1
 huggingface-hub==0.25.1
 idna==3.10
-importlib_metadata==8.5.0
+importlib_metadata<7
 Jinja2==3.1.4
 jsonschema==4.23.0
 jsonschema-specifications==2024.10.1
