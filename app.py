@@ -49,10 +49,10 @@ if st.button('Translate'):
     if text:
         translation = translate(text, model, tokenizer)
         st.success('Translation:')
-        st.markdown(f"<h2 style='color:blue;'>{translation}</h2>", unsafe_allow_html=True)
+        st.markdown(f"<h2 style='color:red;'>{translation}</h2>", unsafe_allow_html=True)
     else:
         st.warning("Please enter some text to translate.")
 
 # Footer
 st.markdown("---")
-st.markdown("Created with ❤️ by [Your Name](https://yourwebsite.com)")
+st.markdown("Created with ❤️ by [Aditya Srivastava](https://adi1816.github.io/AdiInYourHeart/)")
