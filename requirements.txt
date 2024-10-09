@@ -37,9 +37,10 @@ networkx==3.2.1
 numpy==1.26.4
 opt_einsum==3.4.0
 optree==0.13.0
-packaging
+packaging==23.2
 pandas==2.2.3
 Pillow==9.5.0
+pipdeptree==2.23.4
 protobuf==4.25.5
 pyarrow==17.0.0
 pydeck==0.9.1
@@ -59,7 +60,7 @@ safetensors==0.4.5
 sentencepiece==0.2.0
 six==1.16.0
 smmap==5.0.1
-streamlit
+streamlit==1.23.0
 sympy==1.13.3
 tenacity==8.5.0
 tensorboard==2.16.2
@@ -69,7 +70,7 @@ tensorflow-io-gcs-filesystem==0.37.1
 termcolor==2.5.0
 tokenizers==0.10.3
 toml==0.10.2
-torch>=1.13.0
+torch==2.2.2
 tornado==6.4.1
 tqdm==4.66.5
 transformers==4.12.5
