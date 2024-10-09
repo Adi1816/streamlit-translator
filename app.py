@@ -1,53 +1,58 @@
 import streamlit as st
 from transformers import MarianMTModel, MarianTokenizer
 
-# Title of the app
-st.title("Multilingual Translator")
-
-# Supported languages with MarianMT Models (add/remove based on support)
-language_pairs = {
-    "English to Hindi": ("Helsinki-NLP/opus-mt-en-hi", "English", "Hindi"),
-    "Hindi to English": ("Helsinki-NLP/opus-mt-hi-en", "Hindi", "English"),
-    "English to French": ("Helsinki-NLP/opus-mt-en-fr", "English", "French"),
-    "French to English": ("Helsinki-NLP/opus-mt-fr-en", "French", "English"),
-    "English to German": ("Helsinki-NLP/opus-mt-en-de", "English", "German"),
-    "German to English": ("Helsinki-NLP/opus-mt-de-en", "German", "English"),
-    "English to Spanish": ("Helsinki-NLP/opus-mt-en-es", "English", "Spanish"),
-    "Spanish to English": ("Helsinki-NLP/opus-mt-es-en", "Spanish", "English"),
-    "English to Russian": ("Helsinki-NLP/opus-mt-en-ru", "English", "Russian"),
-    "Russian to English": ("Helsinki-NLP/opus-mt-ru-en", "Russian", "English"),
-    "English to Chinese": ("Helsinki-NLP/opus-mt-en-zh", "English", "Chinese"),
-    "Chinese to English": ("Helsinki-NLP/opus-mt-zh-en", "Chinese", "English"),
-    "English to Arabic": ("Helsinki-NLP/opus-mt-en-ar", "English", "Arabic"),
-    "Arabic to English": ("Helsinki-NLP/opus-mt-ar-en", "Arabic", "English"),
+# Load the models and tokenizers for selected languages
+models = {
+    "English to French": "Helsinki-NLP/opus-mt-en-fr",
+    "English to Spanish": "Helsinki-NLP/opus-mt-en-es",
+    "English to German": "Helsinki-NLP/opus-mt-en-de",
+    "English to Italian": "Helsinki-NLP/opus-mt-en-it",
+    # "English to Portuguese": "Helsinki-NLP/opus-mt-en-pt",
+    "English to Dutch": "Helsinki-NLP/opus-mt-en-nl",
+    "English to Russian": "Helsinki-NLP/opus-mt-en-ru",
+    "English to Chinese (Simplified)": "Helsinki-NLP/opus-mt-en-zh",
+    # "English to Japanese": "Helsinki-NLP/opus-mt-en-ja",
+    "English to Arabic": "Helsinki-NLP/opus-mt-en-ar",
 }
 
-# Sidebar for language selection
-st.sidebar.header("Select Language Pair")
-language_choice = st.sidebar.selectbox(
-    "Choose translation direction", list(language_pairs.keys())
-)
+def load_model_and_tokenizer(model_name):
+    tokenizer = MarianTokenizer.from_pretrained(model_name)
+    model = MarianMTModel.from_pretrained(model_name)
+    return tokenizer, model
 
-# Retrieve the model and tokenizer for the selected language pair
-model_name, src_lang, tgt_lang = language_pairs[language_choice]
-model = MarianMTModel.from_pretrained(model_name)
-tokenizer = MarianTokenizer.from_pretrained(model_name)
+def translate(text, model, tokenizer):
+    inputs = tokenizer.encode(text, return_tensors="pt", max_length=512, truncation=True)
+    translated = model.generate(inputs, max_length=512, num_beams=4, early_stopping=True)
+    translated_text = tokenizer.decode(translated[0], skip_special_tokens=True)
+    return translated_text
 
-# Input box for the user to type in text
-text_to_translate = st.text_area(f"Enter text in {src_lang}:")
+# Streamlit app
+st.title('🌐 Language Translator')
+st.markdown("""
+    This app allows you to translate text from English to multiple languages.
+    Select the target language from the dropdown menu and enter the text you want to translate.
+""")
 
-# When the button is clicked
-if st.button("Translate"):
-    if text_to_translate:
-        # Tokenize the input text
-        translated = model.generate(**tokenizer(text_to_translate, return_tensors="pt", padding=True))
-        translated_text = [tokenizer.decode(t, skip_special_tokens=True) for t in translated]
+# Sidebar for additional options
+st.sidebar.header("Options")
+st.sidebar.write("Select the target language and enter the text for translation.")
 
-        # Display the translated text
-        st.text_area(f"Translated text in {tgt_lang}:", translated_text[0])
+# Dropdown for language selection
+selected_language = st.selectbox('Choose the target language:', list(models.keys()))
+
+# Load the selected model and tokenizer
+model_name = models[selected_language]
+tokenizer, model = load_model_and_tokenizer(model_name)
+
+text = st.text_area('Enter text to translate:')
+if st.button('Translate'):
+    if text:
+        translation = translate(text, model, tokenizer)
+        st.success('Translation:')
+        st.markdown(f"<h2 style='color:blue;'>{translation}</h2>", unsafe_allow_html=True)
     else:
-        st.warning("Please enter some text to translate!")
+        st.warning("Please enter some text to translate.")
 
-# Footer information
-st.sidebar.write("Supported language pairs are provided by MarianMT models.")
-st.sidebar.write("Powered by HuggingFace Transformers.")
+# Footer
+st.markdown("---")
+st.markdown("Created with ❤️ by [Your Name](https://yourwebsite.com)")
